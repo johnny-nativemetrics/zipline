@@ -670,23 +670,37 @@
             return btn;
         }
 
+        _truncateWikipediaExtract(extract, maxChars = 120) {
+            if (!extract) return null;
+            const firstSentence = extract.match(/^.*?[.!?](?:\s|$)/);
+            if (firstSentence && firstSentence[0].length <= maxChars) {
+                return firstSentence[0].trim();
+            }
+            if (extract.length <= maxChars) return extract;
+            return extract.slice(0, extract.lastIndexOf(' ', maxChars)) + '…';
+        }
+
         async _enrichTermFromWikipedia(term) {
             const raw = (term.label || term.phrase).trim();
-            const singular = raw.replace(/s$/i, ''); // "atomic clocks" → "atomic clock"
+            const singular = raw.replace(/s$/i, '');
             const candidates = [...new Set([raw, singular])];
 
             for (const query of candidates) {
                 try {
                     const response = await fetch(
                         `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
-                        { headers: { 'Accept': 'application/json' } }
+                        {
+                            headers: {
+                                'Accept': 'application/json',
+                                'User-Agent': 'ZiplineInText/1.0 (https://nativemetrics-svc.com)'
+                            }
+                        }
                     );
                     if (!response.ok) continue;
                     const data = await response.json();
                     if (data.type === 'disambiguation') continue;
                     const thumbnail = data.thumbnail?.source ?? data.originalimage?.source ?? null;
-                    const definition = data.extract ?? null;
-                    // Only accept this candidate if it has at least a definition
+                    const definition = this._truncateWikipediaExtract(data.extract);
                     if (!definition) continue;
                     return { thumbnail, definition };
                 } catch {
