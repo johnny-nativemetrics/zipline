@@ -491,6 +491,7 @@
             this._intextPopover      = null; // shared popover DOM node
             this._intextActiveMark   = null; // currently active mark button
             this._intextHideTimer    = null;
+            this._intextUsedTerms    = new Set();
 
             // Pre-warm the terms cache immediately so it's ready by the time
             // the first response finishes streaming.
@@ -543,9 +544,20 @@
 
         highlightIntextTerms(el) {
             this._ensureIntextPopover();
-            this._fetchIntextTerms().then(terms => {
-                if (!terms.length) return;
-                terms.forEach(term => this._intextHighlightTermInEl(el, term));
+            this._fetchIntextTerms().then(apiTerms => {
+                const articleTerms = this._scrapeArticleTerms();
+                // API terms take priority (they have definitions); article <strong> terms fill the gaps
+                const apiPhrases = new Set(apiTerms.map(t => t.phrase.toLowerCase()));
+                const merged = [
+                    ...apiTerms,
+                    ...articleTerms.filter(t => !apiPhrases.has(t.phrase.toLowerCase()))
+                ];
+                merged
+                    .filter(term => !this._intextUsedTerms.has(term.phrase.toLowerCase()))
+                    .forEach(term => {
+                        const matched = this._intextHighlightTermInEl(el, term);
+                        if (matched) this._intextUsedTerms.add(term.phrase.toLowerCase());
+                    });
             });
         }
 
@@ -557,7 +569,6 @@
 
         _intextHighlightTermInEl(el, term) {
             const regex = new RegExp(`\\b${this._intextEscapeRegExp(term.phrase)}\\b`, 'gi');
-            // Leave code/pre blocks alone so technical terms don't get wrapped.
             const skipTags = /^(script|style|button|a|textarea|input|code|pre)$/;
 
             const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
@@ -571,9 +582,10 @@
                 }
             });
 
-            // Collect before modifying (avoids walker invalidation mid-walk).
             const nodes = [];
             while (walker.nextNode()) nodes.push(walker.currentNode);
+
+            let didMatch = false;
 
             nodes.forEach(node => {
                 const text = node.nodeValue;
@@ -592,7 +604,31 @@
                     fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
                 }
                 node.parentNode.replaceChild(fragment, node);
+                didMatch = true;
             });
+
+            return didMatch;
+        }
+
+        _scrapeArticleTerms() {
+            const article = document.querySelector('article, main, [role="main"]');
+            if (!article) return [];
+            const seen = new Set();
+            const terms = [];
+            article.querySelectorAll('strong, b').forEach(el => {
+                const phrase = el.textContent.trim();
+                if (!phrase || phrase.length < 3) return;
+                const key = phrase.toLowerCase();
+                if (seen.has(key)) return;
+                seen.add(key);
+                terms.push({
+                    phrase,
+                    label: phrase,
+                    definition: '',
+                    follow_up_question: `Tell me more about ${phrase}`
+                });
+            });
+            return terms;
         }
 
         _intextCreateMark(term) {
@@ -667,7 +703,7 @@
 
         _intextShowPopover(mark, term, forceTouch = false) {
             const isTouch = !!(window.matchMedia?.('(hover: none)')?.matches ||
-                               window.matchMedia?.('(pointer: coarse)')?.matches);
+                            window.matchMedia?.('(pointer: coarse)')?.matches);
             if (isTouch && !forceTouch) return;
 
             const popover = this._ensureIntextPopover();
@@ -679,11 +715,14 @@
             this._intextActiveMark = mark;
             mark.setAttribute('data-active', 'true');
 
-            popover.querySelector('.zipline-intext-chip').textContent       = term.label || term.phrase;
-            popover.querySelector('.zipline-intext-definition').textContent = term.definition || '';
+            popover.querySelector('.zipline-intext-chip').textContent = term.label || term.phrase;
+
+            const defEl = popover.querySelector('.zipline-intext-definition');
+            defEl.textContent = term.definition || '';
+            defEl.style.display = term.definition ? '' : 'none';
 
             const ctaLabel = term.follow_up_question || `Tell me more about ${term.label || term.phrase}`;
-            popover.querySelector('.zipline-intext-cta-label').textContent  = ctaLabel;
+            popover.querySelector('.zipline-intext-cta-label').textContent = ctaLabel;
             popover.querySelector('.zipline-intext-cta').onclick = e => {
                 e.preventDefault();
                 this._intextSendTerm(term);
