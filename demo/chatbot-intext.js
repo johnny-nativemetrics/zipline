@@ -689,12 +689,7 @@
                 try {
                     const response = await fetch(
                         `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
-                        {
-                            headers: {
-                                'Accept': 'application/json',
-                                'User-Agent': 'ZiplineInText/1.0 (https://nativemetrics-svc.com)'
-                            }
-                        }
+                        { headers: { 'Accept': 'application/json' } }
                     );
                     if (!response.ok) continue;
                     const data = await response.json();
