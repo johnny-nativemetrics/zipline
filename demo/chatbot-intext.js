@@ -670,6 +670,32 @@
             return btn;
         }
 
+        async _enrichTermFromWikipedia(term) {
+            const raw = (term.label || term.phrase).trim();
+            const singular = raw.replace(/s$/i, ''); // "atomic clocks" → "atomic clock"
+            const candidates = [...new Set([raw, singular])];
+
+            for (const query of candidates) {
+                try {
+                    const response = await fetch(
+                        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
+                        { headers: { 'Accept': 'application/json' } }
+                    );
+                    if (!response.ok) continue;
+                    const data = await response.json();
+                    if (data.type === 'disambiguation') continue;
+                    const thumbnail = data.thumbnail?.source ?? data.originalimage?.source ?? null;
+                    const definition = data.extract ?? null;
+                    // Only accept this candidate if it has at least a definition
+                    if (!definition) continue;
+                    return { thumbnail, definition };
+                } catch {
+                    continue;
+                }
+            }
+            return null;
+        }
+
         // ─── InText: popover ────────────────────────────────────────────────────
 
         _ensureIntextPopover() {
@@ -678,6 +704,7 @@
             const popover = document.createElement('div');
             popover.className = 'zipline-intext-popover';
             popover.innerHTML =
+                '<img class="zipline-intext-thumbnail" style="display:none" alt="">' +
                 '<div class="zipline-intext-chip"></div>' +
                 '<p class="zipline-intext-definition"></p>' +
                 '<button type="button" class="zipline-intext-cta">' +
@@ -715,11 +742,16 @@
             this._intextActiveMark = mark;
             mark.setAttribute('data-active', 'true');
 
-            popover.querySelector('.zipline-intext-chip').textContent = term.label || term.phrase;
+            // Reset popover to base state
+            const imgEl  = popover.querySelector('.zipline-intext-thumbnail');
+            const defEl  = popover.querySelector('.zipline-intext-definition');
+            const chipEl = popover.querySelector('.zipline-intext-chip');
 
-            const defEl = popover.querySelector('.zipline-intext-definition');
-            defEl.textContent = term.definition || '';
-            defEl.style.display = term.definition ? '' : 'none';
+            chipEl.textContent   = term.label || term.phrase;
+            imgEl.style.display  = 'none';
+            imgEl.src            = '';
+            defEl.textContent    = term.definition || '';
+            defEl.style.display  = term.definition ? '' : 'none';
 
             const ctaLabel = term.follow_up_question || `Tell me more about ${term.label || term.phrase}`;
             popover.querySelector('.zipline-intext-cta-label').textContent = ctaLabel;
@@ -730,6 +762,21 @@
 
             popover.setAttribute('data-open', 'true');
             this._intextPositionPopover(mark);
+
+            // Fetch Wikipedia enrichment and update in place
+            this._enrichTermFromWikipedia(term).then(wiki => {
+                if (!wiki || this._intextActiveMark !== mark) return; // user moved on
+                if (wiki.thumbnail) {
+                    imgEl.src           = wiki.thumbnail;
+                    imgEl.style.display = '';
+                    this._intextPositionPopover(mark); // reposition after image adds height
+                }
+                if (wiki.definition && !term.definition) {
+                    defEl.textContent   = wiki.definition;
+                    defEl.style.display = '';
+                    this._intextPositionPopover(mark);
+                }
+            });
         }
 
         _intextHidePopover() {
