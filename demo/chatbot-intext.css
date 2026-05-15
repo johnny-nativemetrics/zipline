@@ -1,0 +1,118 @@
+/* chatbot-intext.css
+   Styles for the InText term-highlight integration inside Ask Anything.
+   Based on the original zipline-intext stylesheet with z-index tuned to
+   sit above the Zippy chat window (which should be < 9990).
+*/
+
+/* ── Highlighted term pill inside bot messages ─────────────────────────────── */
+
+.zipline-intext-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(208, 228, 251, 0.95);
+  color: #3f6f9d;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.zipline-intext-mark:hover,
+.zipline-intext-mark:focus-visible,
+.zipline-intext-mark[data-active="true"] {
+  background: #b9d8fb;
+  color: #245786;
+  box-shadow: 0 0 0 3px rgba(120, 177, 235, 0.22);
+  outline: none;
+}
+
+/* ── Hover popover ──────────────────────────────────────────────────────────── */
+
+.zipline-intext-popover {
+  position: fixed;
+  z-index: 9999;           /* above the Zippy window */
+  width: min(400px, calc(100vw - 24px));
+  padding: 18px 22px 20px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(198, 218, 239, 0.9);
+  opacity: 0;
+  transform: translateY(8px) scale(0.985);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.zipline-intext-popover[data-open="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.zipline-intext-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: #d9e9fb;
+  color: #3f6f9d;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.zipline-intext-definition {
+  margin: 14px 0 18px;
+  color: #3a4656;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.zipline-intext-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #57a9eb;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.zipline-intext-cta:hover,
+.zipline-intext-cta:focus-visible {
+  color: #3d93d9;
+  outline: none;
+}
+
+.zipline-intext-cta-arrow {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ── Mobile adjustments ─────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .zipline-intext-popover {
+    width: calc(100vw - 20px);
+    padding: 16px 18px 18px;
+    border-radius: 22px;
+  }
+
+  .zipline-intext-definition {
+    font-size: 14px;
+  }
+
+  .zipline-intext-cta {
+    font-size: 14px;
+  }
+}
