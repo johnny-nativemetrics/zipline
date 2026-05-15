@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zipline Product Suite — NativeMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --page:       #f2f2ef;
+      --white:      #ffffff;
+      --border:     rgba(0,0,0,.08);
+      --border-md:  rgba(0,0,0,.13);
+      --text:       #0c0c0f;
+      --text-mid:   #6a6a78;
+      --text-dim:   #a8a8b4;
+      --ink:        #0c0c0f;
+      --radius:     16px;
+      --shadow:     0 1px 3px rgba(0,0,0,.04), 0 4px 14px rgba(0,0,0,.06);
+      --shadow-hov: 0 4px 6px rgba(0,0,0,.05), 0 12px 32px rgba(0,0,0,.10);
+    }
+
+    html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body { background: var(--page); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100vh; }
+
+    /* STAGING BANNER */
+    #staging-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 24px;
+      background: #fffbeb;
+      border-bottom: 1px solid #fcd34d;
+      font-size: 12px;
+      color: #92400e;
+      font-weight: 500;
+    }
+    #staging-banner.on { display: flex; }
+    .s-dot { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; animation: blink 1.4s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    /* NAV */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      height: 58px;
+      padding: 0 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .nav-left { display: flex; align-items: center; }
+
+    .nm-mark { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nm-icon { width: 26px; height: 26px; background: var(--ink); border-radius: 6px; display: grid; place-items: center; }
+    .nm-icon svg { display: block; }
+    .nm-label { font-size: 13.5px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+
+    .nav-sep { width: 1px; height: 18px; background: var(--border-md); margin: 0 14px; }
+    .nav-sub { font-size: 13px; color: var(--text-mid); }
+
+    .env-pill {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 5px 11px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .env-pill.prod { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .env-pill.stag { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+    .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
+    .pill-dot.prod { background: #22c55e; }
+    .pill-dot.stag { background: #f59e0b; animation: blink 1.4s ease-in-out infinite; }
+
+    /* HERO */
+    .hero { background: var(--white); border-bottom: 1px solid var(--border); padding: 72px 52px 64px; }
+    .hero-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 48px; }
+
+    h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(46px, 5.8vw, 80px);
+      font-weight: 800;
+      line-height: .92;
+      letter-spacing: -.04em;
+      color: var(--text);
+    }
+
+    .hero-right { text-align: right; padding-bottom: 2px; }
+    .hero-sub { font-size: 14px; color: var(--text-mid); line-height: 1.65; max-width: 240px; margin: 0 0 14px auto; }
+    .hero-count { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); }
+
+    /* MAIN */
+    main { max-width: 1160px; margin: 0 auto; padding: 48px 52px 80px; }
+
+    .section-row { display: flex; align-items: center; margin-bottom: 22px; }
+    .section-label { font-family: 'Space Mono', monospace; font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); }
+
+    /* GRID */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    /* CARD */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: var(--shadow);
+      transition: box-shadow .22s, transform .22s, border-color .18s;
+      animation: up .4s ease both;
+    }
+    .card:hover { box-shadow: var(--shadow-hov); transform: translateY(-3px); border-color: var(--border-md); }
+    @keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .card:nth-child(1){animation-delay:.04s}
+    .card:nth-child(2){animation-delay:.08s}
+    .card:nth-child(3){animation-delay:.12s}
+    .card:nth-child(4){animation-delay:.16s}
+    .card:nth-child(5){animation-delay:.20s}
+    .card:nth-child(6){animation-delay:.24s}
+    .card:nth-child(7){animation-delay:.28s}
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+
+    .product-icon { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; }
+    .product-icon svg { width: 21px; height: 21px; }
+
+    .card-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: var(--page);
+      border: 1px solid var(--border);
+      padding: 4px 9px;
+      border-radius: 6px;
+    }
+
+    .card-body { flex: 1; }
+    .card-name { font-family: 'Bricolage Grotesque', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.025em; color: var(--text); margin-bottom: 5px; }
+    .card-desc { font-size: 12.5px; color: var(--text-mid); line-height: 1.62; }
+
+    /* BUTTONS */
+    .btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; text-decoration: none;
+      transition: background .14s, transform .12s;
+      line-height: 1;
+    }
+    .btn-icon { display: flex; align-items: center; }
+    .btn-icon svg { width: 13px; height: 13px; }
+
+    .btn-prod { background: var(--ink); color: #fff; }
+    .btn-prod:hover { background: #2d2d36; }
+
+    .btn-staging { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+    .btn-staging:hover { background: #fef3c7; }
+
+    .btn-tbd { background: var(--page); color: var(--text-dim); border: 1px dashed var(--border-md); cursor: not-allowed; pointer-events: none; font-style: italic; font-size: 12px; }
+
+    /* FOOTER */
+    footer { background: var(--white); border-top: 1px solid var(--border); padding: 20px 52px; display: flex; align-items: center; justify-content: space-between; }
+    .footer-copy { font-size: 12px; color: var(--text-dim); }
+    .footer-right { font-size: 11px; color: var(--text-dim); font-family: 'Space Mono', monospace; letter-spacing: .08em; }
+
+    @media (max-width: 680px) {
+      nav, .hero, main, footer { padding-left: 20px; padding-right: 20px; }
+      .hero-inner { flex-direction: column; align-items: flex-start; }
+      .hero-right { text-align: left; }
+      .hero-sub { margin-left: 0; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="staging-banner">
+    <div class="s-dot"></div>
+    You're viewing <strong>&nbsp;staging environments</strong> — for internal testing only
+    <div class="s-dot"></div>
+  </div>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nm-mark" href="/">
+        <div class="nm-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1L10.5 3.5V8.5L6 11L1.5 8.5V3.5L6 1Z" fill="white"/>
+          </svg>
+        </div>
+        <span class="nm-label">NativeMetrics</span>
+      </a>
+      <div class="nav-sep"></div>
+      <span class="nav-sub">Zipline Product Suite</span>
+    </div>
+    <div class="env-pill prod" id="env-pill">
+      <div class="pill-dot prod" id="pill-dot"></div>
+      <span id="pill-label">Production</span>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>The Zipline<br>Platform.</h1>
+      <div class="hero-right">
+        <p class="hero-sub">Live demos and environments for every product in the Zipline suite.</p>
+        <p class="hero-count">7 Products</p>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="section-row">
+      <p class="section-label" id="section-label">All Products — Production</p>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>
+    <span class="footer-copy">&copy; 2025 NativeMetrics, Inc.</span>
+    <span class="footer-right">Zipline Platform</span>
+  </footer>
+
+  <script>
+    const ARROW = `<svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10"/></svg>`;
+
+    const PRODUCTS = [
+      {
+        name: 'Answers',
+        tag: 'Search',
+        desc: 'AI-powered natural language responses layered over search queries.',
+        color: '#2563eb',
+        prod: 'https://go.ziplinesearch.com/s',
+        staging: null,
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="9" cy="9" r="6"/>
+          <path d="M16 16l3.5 3.5M9 6.5v5M6.5 9h5"/>
+        </svg>`
+      },
+      {
+        name: 'Query',
+        tag: 'Search',
+        desc: 'Full search interface with keyword and semantic query capabilities.',
+        color: '#7c3aed',
+        prod: 'https://go.ziplinesearch.com',
+        staging: null,
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+          <rect x="2.5" y="4.5" width="16" height="12" rx="2"/>
+          <path d="M5.5 9h10M5.5 13h6"/>
+        </svg>`
+      },
+      {
+        name: 'Chatbot',
+        tag: 'AI Bot',
+        desc: 'Contextual conversational AI embedded alongside article content.',
+        color: '#059669',
+        prod: 'demo/chatbot.html',
+        staging: 'demo/chatbot.html?env=staging',
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h13a2 2 0 012 2v7a2 2 0 01-2 2H8l-5 4V6a2 2 0 012-2z"/>
+          <path d="M7.5 10h6M7.5 13h4"/>
+        </svg>`
+      },
+      {
+        name: 'Exhaust',
+        tag: 'AI Bot',
+        desc: 'Idle-timer and exit-intent engagement capturing departing readers.',
+        color: '#ea580c',
+        prod: 'demo/exhaust.html',
+        staging: 'demo/exhaust.html?env=staging',
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+          <path d="M10.5 2.5v4M7.2 7.2L4.8 4.8M13.8 7.2l2.4-2.4"/>
+          <path d="M4 11h13M6 15h9M8.5 19h4"/>
+        </svg>`
+      },
+      {
+        name: 'InText',
+        tag: 'AI Bot',
+        desc: 'In-article AI widget that surfaces contextual questions mid-read.',
+        color: '#db2777',
+        prod: 'demo/intext.html',
+        staging: 'demo/intext.html?env=staging',
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+          <path d="M3 5.5h15M3 10h15M3 14.5h8"/>
+          <circle cx="15.5" cy="15" r="3.5"/>
+          <path d="M15.5 13.8v1.6M15.5 17.2v.3"/>
+        </svg>`
+      },
+      {
+        name: 'Spark',
+        tag: 'AI Bot',
+        desc: 'Content discovery widget with AI-generated related article prompts.',
+        color: '#ca8a04',
+        prod: 'demo/spark.html',
+        staging: 'demo/spark.html?env=staging',
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11.5 2.5L4.5 12h7.5L9 18.5l11-11H13l2-5z"/>
+        </svg>`
+      },
+      {
+        name: 'Summary',
+        tag: 'AI Bot',
+        desc: 'Automated article summarization with AI-generated key takeaways.',
+        color: '#0891b2',
+        prod: null,
+        staging: null,
+        icon: `<svg viewBox="0 0 21 21" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+          <rect x="3" y="2.5" width="15" height="16" rx="2"/>
+          <path d="M7 7.5h7M7 11h7M7 14.5h5"/>
+        </svg>`
+      }
+    ];
+
+    const params  = new URLSearchParams(window.location.search);
+    const staging = params.get('env') === 'staging';
+
+    if (staging) {
+      document.getElementById('staging-banner').classList.add('on');
+      document.getElementById('section-label').textContent = 'All Products — Staging';
+      const pill = document.getElementById('env-pill');
+      pill.className = 'env-pill stag';
+      document.getElementById('pill-dot').className = 'pill-dot stag';
+      document.getElementById('pill-label').textContent = 'Staging';
+    }
+
+    function buildCard(p) {
+      const url = staging ? p.staging : p.prod;
+      let btn;
+      if (url) {
+        btn = staging
+          ? `<a class="btn btn-staging" href="${url}" target="_blank"><span>Launch Staging</span><span class="btn-icon">${ARROW}</span></a>`
+          : `<a class="btn btn-prod"    href="${url}" target="_blank"><span>Launch</span><span class="btn-icon">${ARROW}</span></a>`;
+      } else {
+        btn = `<span class="btn btn-tbd"><span>Coming soon</span></span>`;
+      }
+
+      return `
+        <div class="card">
+          <div class="card-top">
+            <div class="product-icon" style="background:${p.color}">${p.icon}</div>
+            <span class="card-tag">${p.tag}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-name">${p.name}</div>
+            <div class="card-desc">${p.desc}</div>
+          </div>
+          <div>${btn}</div>
+        </div>`;
+    }
+
+    document.getElementById('grid').innerHTML = PRODUCTS.map(buildCard).join('');
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How GPS Knows Exactly Where You Are — The Brief</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --page:      #faf9f6;
+      --white:     #ffffff;
+      --border:    rgba(0,0,0,.08);
+      --border-md: rgba(0,0,0,.13);
+      --text:      #141414;
+      --text-mid:  #6a6a72;
+      --text-dim:  #a8a8b0;
+      --radius:    10px;
+    }
+    html { -webkit-font-smoothing: antialiased; }
+    body { background: var(--page); color: var(--text); font-family: "DM Sans", system-ui, sans-serif; min-height: 100vh; }
+
+    .demo-nav {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      height: 52px; padding: 0 40px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 50;
+    }
+    .back-link {
+      display: flex; align-items: center; gap: 7px; text-decoration: none;
+      color: var(--text-mid); font-size: 13px; font-weight: 500; transition: color .15s;
+    }
+    .back-link:hover { color: var(--text); }
+    .back-link svg { width: 14px; height: 14px; }
+    .nav-center { font-size: 12px; color: var(--text-dim); letter-spacing: .01em; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .product-badge {
+      font-size: 11px; font-weight: 600; padding: 4px 10px;
+      border-radius: 6px; color: #fff; background: #ea580c; letter-spacing: .01em;
+    }
+    .env-tag {
+      font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 6px;
+    }
+    .env-tag.prod { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .env-tag.stag { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+
+    .pub-header {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      text-align: center; padding: 22px 24px 18px;
+    }
+    .pub-name {
+      font-family: "Playfair Display", Georgia, serif; font-size: 32px;
+      font-weight: 800; letter-spacing: -.02em; color: var(--text); margin-bottom: 4px;
+    }
+    .pub-tagline { font-size: 11px; color: var(--text-dim); letter-spacing: .18em; text-transform: uppercase; }
+
+    .article-wrap { max-width: 700px; margin: 0 auto; padding: 52px 24px 80px; }
+    .article-category {
+      display: inline-block; font-size: 10.5px; font-weight: 600;
+      letter-spacing: .16em; text-transform: uppercase; color: #2563eb; margin-bottom: 18px;
+    }
+    .article-h1 {
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(32px, 4.5vw, 48px); font-weight: 800;
+      line-height: 1.08; letter-spacing: -.02em; color: var(--text); margin-bottom: 20px;
+    }
+    .article-lede {
+      font-family: "Lora", Georgia, serif; font-size: 19px; font-style: italic;
+      line-height: 1.55; color: #3a3a44;
+      border-left: 3px solid #2563eb; padding-left: 18px; margin-bottom: 24px;
+    }
+    .article-byline {
+      display: flex; align-items: center; gap: 12px; font-size: 12.5px;
+      color: var(--text-mid); padding-bottom: 28px;
+      border-bottom: 1px solid var(--border); margin-bottom: 36px;
+    }
+    .byline-sep { color: var(--border-md); }
+    .byline-read {
+      margin-left: auto; background: #f0f4ff; color: #3b5bdb;
+      font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 5px;
+    }
+    .article-body { font-family: "Lora", Georgia, serif; font-size: 18px; line-height: 1.75; color: #1e1e24; }
+    .article-body p { margin-bottom: 1.5em; }
+    .article-body p:first-child::first-letter {
+      font-family: "Playfair Display", Georgia, serif; font-size: 4.2em;
+      font-weight: 800; float: left; line-height: .82; margin: 6px 10px 0 0; color: var(--text);
+    }
+    .article-body h2 {
+      font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 600;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--text-mid);
+      margin: 2.4em 0 1em; padding-bottom: .6em; border-bottom: 1px solid var(--border);
+    }
+    .article-body strong { font-weight: 600; color: var(--text); }
+
+    .embed-zone { margin-top: 48px; padding-top: 36px; border-top: 1px solid var(--border); }
+    .embed-zone:empty { display: none; }
+
+    .pub-footer {
+      background: var(--white); border-top: 1px solid var(--border);
+      padding: 20px 40px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .pub-footer-name { font-family: "Playfair Display", serif; font-size: 16px; font-weight: 700; color: var(--text); }
+    .pub-footer-copy { font-size: 12px; color: var(--text-dim); }
+
+    @media (max-width: 600px) {
+      .demo-nav { padding: 0 16px; }
+      .nav-center { display: none; }
+      .article-wrap { padding: 36px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="demo-nav">
+    <a class="back-link" href="../index.html">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 7H3M6.5 3.5L3 7l3.5 3.5"/>
+      </svg>
+      Back to Suite
+    </a>
+    <span class="nav-center">Article Demo — Exhaust</span>
+    <div class="nav-right">
+      <span class="product-badge">Exhaust</span>
+      <span class="env-tag" id="env-tag">Production</span>
+    </div>
+  </nav>
+
+  <header class="pub-header">
+    <div class="pub-name">The Brief</div>
+    <div class="pub-tagline">Clarity on the world around you</div>
+  </header>
+
+  <article class="article-wrap">
+
+    <span class="article-category">Science &amp; Technology</span>
+    <h1 class="article-h1">How GPS Knows Exactly Where You Are</h1>
+    <p class="article-lede">The technology guiding your phone, your car, and your hiking trails runs on atomic physics, satellite math, and a relativistic correction Einstein himself would have seen coming.</p>
+
+    <div class="article-byline">
+      <span>Staff Writer</span>
+      <span class="byline-sep">&middot;</span>
+      <span>June 2025</span>
+      <span class="byline-sep">&middot;</span>
+      <span>Updated 3 days ago</span>
+      <span class="byline-read">6 min read</span>
+    </div>
+
+    <div class="article-body">
+      <p>You opened a maps app this morning and it found you within seconds &mdash; a blue dot appearing on a street, precise to within a few meters. Few technologies have become so embedded in daily life while remaining so mysterious. GPS is not magic, but understanding how it works requires a brief tour through orbital mechanics, atomic physics, and the theory of relativity.</p>
+      <h2>A Network Above Your Head</h2>
+      <p>The Global Positioning System operates through a constellation of at least 24 satellites orbiting Earth at an altitude of roughly 20,200 kilometers. They circle the planet twice a day, arranged in six orbital planes so that at least four satellites are visible from almost any point on the surface at almost any time. The system is operated by the United States Space Force and made available, free of charge, to anyone with a receiver &mdash; the chip inside your phone, a handheld hiking unit, a commercial airline&rsquo;s navigation console.</p>
+      <p>Each satellite continuously broadcasts a simple radio signal containing just two pieces of information: which satellite is sending it, and precisely what time it was sent. That is the entirety of the message. What your receiver does with those signals is where the mathematics begins.</p>
+      <h2>The Geometry of Distance</h2>
+      <p>Radio waves travel at the speed of light &mdash; approximately 299,792 kilometers per second. Because your receiver knows when each satellite sent its signal and when it arrived, it can calculate how far away that satellite is. A signal that took 0.07 seconds to arrive came from a satellite roughly 20,900 kilometers away.</p>
+      <p>One satellite tells you that you&rsquo;re somewhere on a sphere of that radius around it. A second satellite constrains you to the intersection of two spheres &mdash; a circle. A third reduces that circle to two points, one of which is usually in outer space or underground and easily dismissed. A fourth satellite provides the final fix and corrects for small errors in your receiver&rsquo;s clock. This method &mdash; pinpointing a location from overlapping distance measurements &mdash; is called <strong>trilateration</strong>, and it is the mathematical engine at the heart of every GPS fix.</p>
+      <h2>The Atomic Clock Problem</h2>
+      <p>The entire system is only as good as its timekeeping. An error of a single microsecond &mdash; one millionth of a second &mdash; translates to a positioning error of about 300 meters. To achieve the accuracy we expect from consumer GPS, the satellites carry <strong>atomic clocks</strong> accurate to within a nanosecond, keeping time by measuring the oscillation of cesium or rubidium atoms. These atoms vibrate at rates so consistent that the clocks drift by less than a second over millions of years.</p>
+      <p>Ground control stations continuously monitor every satellite, uploading corrections to keep the clocks synchronized and the orbits precisely characterized. Without this ongoing maintenance, the system would degrade within hours.</p>
+      <h2>Einstein&rsquo;s Correction</h2>
+      <p>Here is where GPS becomes genuinely surprising. According to <strong>special relativity</strong>, a clock that is moving quickly runs slow relative to one that is stationary. According to <strong>general relativity</strong>, a clock in a weaker gravitational field runs fast relative to one in a stronger field. GPS satellites are moving quickly and sit high in Earth&rsquo;s gravitational field, and the two effects do not cancel. The net result: satellite clocks tick about 38 microseconds faster per day than equivalent clocks on the ground.</p>
+      <p>Left uncorrected, this drift would cause GPS positions to accumulate errors of roughly 11 kilometers every day. Engineers account for it by programming the satellite clocks to run slightly slow before launch &mdash; precisely 38.4 microseconds per day slow &mdash; so that once in orbit, they tick at exactly the right rate. GPS is, among other things, a daily experimental confirmation that Einstein&rsquo;s theories are correct.</p>
+      <h2>Sources of Error and Modern Accuracy</h2>
+      <p>Even with atomic clocks and relativistic corrections, GPS is imperfect. Signals slow slightly as they pass through the ionosphere and troposphere. In cities, signals can bounce off buildings before reaching a receiver &mdash; a problem called <strong>multipath interference</strong>. Under good open-sky conditions, consumer GPS is typically accurate to three to five meters. Ground-based augmentation systems can improve this to centimeter-level accuracy used in surveying, precision agriculture, and aviation.</p>
+      <h2>The Quietest Revolution</h2>
+      <p>GPS was declared fully operational in 1995. Within a decade it had escaped military hardware and entered consumer devices. Within two decades it had become a seamless, invisible layer beneath modern life. Logistics networks route billions of packages. Financial systems use GPS timestamps to sequence transactions. Emergency services locate callers. Farmers guide autonomous tractors to within inches of last year&rsquo;s rows. The technology that once required a van-sized military receiver now fits on a chip smaller than a thumbnail &mdash; correcting for the theory of relativity thirty-eight microseconds at a time, every day, without anyone noticing.</p>
+    </div>
+
+    <div class="embed-zone" id="zp-embed"></div>
+
+  </article>
+
+  <footer class="pub-footer">
+    <span class="pub-footer-name">The Brief</span>
+    <span class="pub-footer-copy">&copy; 2025 The Brief. All rights reserved.</span>
+  </footer>
+
+  <!-- =====================================================
+       EMBED SCRIPTS — UPDATE HERE FOR STAGING/PROD CHANGES
+       ===================================================== -->
+  <!-- UPDATE: swap channelid / src for staging -->
+  <script async src="https://chat.popular-searches-now.com/summarybot/default.js?style=button&exhaust=1&exhaust_idle=10&exhaust_tab_switch=1&channelid=0000000000&subid1=demo"></script>
+
+  <script>
+    // Flip env badge if ?env=staging
+    if (new URLSearchParams(location.search).get('env') === 'staging') {
+      const t = document.getElementById('env-tag');
+      t.textContent = 'Staging';
+      t.className = 'env-tag stag';
+    } else {
+      document.getElementById('env-tag').className = 'env-tag prod';
+      document.getElementById('env-tag').textContent = 'Production';
+    }
+  </script>
+
+</body>
+</html>
